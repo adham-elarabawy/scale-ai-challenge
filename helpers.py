@@ -2,7 +2,60 @@ import numpy as np
 from skimage.draw import polygon_perimeter, line
 from shapely.geometry import Polygon
 from typing import Tuple, Optional
+import torch
 
+def encode(label, img_size=200):
+    # function to encode raw label to network input/output
+
+    # normalize all positional variables by dividing by max value
+    encoded_pos = label[:,0:2] / img_size  # x/y position
+    encoded_size  = label[:,3:] / img_size   # w/h bbox
+
+    # encoding angles as sin/cos for proper behavior at wrap-around angles (bounded to [0,1])
+    s = np.expand_dims(np.sin(label[:,2]) / 2 + 0.5, axis=1)
+    c = np.expand_dims(np.cos(label[:,2]) / 2 + 0.5, axis=1)
+
+    # package all the encodings into one object
+    encoded = np.concatenate((encoded_pos, encoded_size, s, c), axis=1)
+
+    # returns: normalized (x, y, w, h, sin(yaw), cos(yaw))
+    return encoded
+
+def decode(encoded, img_size=200):
+    # function to decode network output into raw label
+
+    # scale position and bbox size back up by size of image
+    pos  = encoded[0:2] * img_size
+    size = encoded[2:4] * img_size
+
+    # recompute the angle from the sin/cos encoding
+    s = 2 * (encoded[4] - 0.5) # sin encoding
+    c = 2 * (encoded[5] - 0.5) # cos encoding
+    yaw = np.arctan2(s, c)
+
+    # package all the decodings into one object
+    decoded = np.concatenate((pos, yaw, size), axis=1)
+
+    # returns: un-normalized (x, y, yaw, w, h)
+    return decoded
+
+def decode_torch(encoded, img_size=200):
+    # function to decode network output into raw label
+
+    # scale position and bbox size back up by size of image
+    pos  = encoded[0:2] * img_size
+    size = encoded[2:4] * img_size
+
+    # recompute the angle from the sin/cos encoding
+    s = 2 * (encoded[4] - 0.5) # sin encoding
+    c = 2 * (encoded[5] - 0.5) # cos encoding
+    yaw = torch.arctan2(s, c)
+
+    # package all the decodings into one object
+    decoded = torch.cat((pos, yaw, size), dim=1)
+
+    # returns: un-normalized (x, y, yaw, w, h)
+    return decode
 
 def _rotation(pts: np.ndarray, theta: float) -> np.ndarray:
     r = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
