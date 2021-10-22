@@ -43,19 +43,19 @@ def decode_torch(encoded, img_size=200):
     # function to decode network output into raw label
 
     # scale position and bbox size back up by size of image
-    pos  = encoded[0:2] * img_size
-    size = encoded[2:4] * img_size
+    pos  = encoded[:,0:2] * img_size
+    size = encoded[:,2:4] * img_size
 
     # recompute the angle from the sin/cos encoding
-    s = 2 * (encoded[4] - 0.5) # sin encoding
-    c = 2 * (encoded[5] - 0.5) # cos encoding
-    yaw = torch.arctan2(s, c)
+    s = 2 * (encoded[:,4] - 0.5) # sin encoding
+    c = 2 * (encoded[:,5] - 0.5) # cos encoding
+    yaw = torch.unsqueeze(torch.atan2(s, c), 1)
 
     # package all the decodings into one object
     decoded = torch.cat((pos, yaw, size), dim=1)
 
     # returns: un-normalized (x, y, yaw, w, h)
-    return decode
+    return decoded
 
 def _rotation(pts: np.ndarray, theta: float) -> np.ndarray:
     r = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])

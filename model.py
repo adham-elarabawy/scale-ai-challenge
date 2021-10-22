@@ -12,7 +12,7 @@ class SpaceshipDetector(nn.Module):
 
     def forward(self, x):
         features = self.featureExtractor(x)
-        return self.localizingHead(x)
+        return self.localizingHead(features)
 
 
 class FeatureExtractor(nn.Module):
@@ -47,6 +47,7 @@ class LocalizingHead(nn.Module):
 
     def forward(self, x):
         batches, channels, height, width = x.shape
+        x = x.contiguous()
         out = x.view(batches, channels * height * width)
         return self.head(out)
 

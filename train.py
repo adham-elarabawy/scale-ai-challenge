@@ -4,10 +4,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
-from metrics.oriented_iou_loss import cal_giou
+from metrics.oriented_iou_loss import cal_diou
 from model import SpaceshipDetector
 import os.path
 from torch.utils.tensorboard import SummaryWriter
+from torch.optim.lr_scheduler import MultiStepLR
 
 
 
@@ -34,7 +35,10 @@ def main(params):
     model.train()
 
     # construct optimizer
-    opt = optim.Adam(model.parameters(), lr=params['lr'])
+    opt = optim.Adam(model.parameters(), lr=params['lr'], eps=1e-07)
+
+    # construct learning rate scheduler
+    scheduler = MultiStepLR(opt, milestones=[20,30], gamma=0.1)
 
     # [train] localization behavior
     for epoch in range(params['epochs']):
@@ -49,7 +53,7 @@ def main(params):
                 # move training data to torch device
                 imgs = imgs.to(device)
                 labels = labels.to(device)
-
+                
                 # run forward pass on data
                 pred = model(imgs)
 
@@ -60,9 +64,9 @@ def main(params):
                 # clean them up for IOU computation
                 decoded_pred = torch.unsqueeze(decoded_pred, 1)
                 decoded_true = torch.unsqueeze(decoded_true, 1)
-
+                
                 # compute generalized IOU (GIOU) loss
-                giou_loss, iou = cal_giou(decoded_pred, decoded_true)
+                giou_loss, iou = cal_diou(decoded_pred, decoded_true)
 
                 # average loss & IOU over samples in batch
                 giou_loss = torch.mean(giou_loss)
@@ -74,10 +78,13 @@ def main(params):
                 opt.step()
 
                 totalLoss += giou_loss.item()
-                totalIOU  += iou
+                totalIOU  += iou.item()
 
                 # update progress bar
-                steps.set_postfix(loss=totalLoss / params['steps_per_epoch'], gIOU=totalIOU / params['steps_per_epoch'])
+                steps.set_postfix(loss=giou_loss.item(), gIOU=iou.item())
+
+            # update learning rate scheduler
+            scheduler.step()
 
             # update tensorboard
             tb.add_scalar('loss/train', totalLoss / params['steps_per_epoch'], epoch)
@@ -85,7 +92,7 @@ def main(params):
 
             # save the model at every epoch
             model_path = os.path.join(params['path'], params['name'], str(epoch) + '.pth')
-            if not os.path.exists(os.path.join(params['path'], params['name'])): os.makdirs(model_path)
+            if not os.path.exists(os.path.join(params['path'], params['name'])): os.makedirs(os.path.join(params['path'], params['name']))
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': model.state_dict(),
@@ -97,10 +104,10 @@ def main(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': 'mk0',
+    params = {'name': '1',
               'path': 'zoo',
-              'lr': 0.0001,
-              'steps_per_epoch': 500,
+              'lr': 0.001,
+              'steps_per_epoch': 3125,
               'batch_size': 64,
-              'epochs': 500}
+              'epochs': 40}
     main(params)
