@@ -1,34 +1,9 @@
 import numpy as np
 from helpers import make_data
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import (
-    Conv2D,
-    MaxPool2D,
-    BatchNormalization,
-    Activation,
-    Reshape,
-    Flatten,
-    Dense,
-)
-
-
-def gen_model():
-    IMAGE_SIZE = 200
-    NFILTERS = 8
-    CONV_PARAMS = {"kernel_size": 3, "use_bias": False, "padding": "same"}
-
-    model = Sequential()
-    model.add(
-        Reshape((IMAGE_SIZE, IMAGE_SIZE, 1), input_shape=(IMAGE_SIZE, IMAGE_SIZE))
-    )
-    for i in [1, 2, 4, 8, 16, 32, 64]:
-        model.add(Conv2D(NFILTERS * i, **CONV_PARAMS))
-        model.add(BatchNormalization())
-        model.add(Activation("relu"))
-        model.add(MaxPool2D())
-    model.add(Flatten())
-    model.add(Dense(5))
-    return model
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from tqdm import tqdm
 
 
 def make_batch(batch_size):
@@ -39,19 +14,48 @@ def make_batch(batch_size):
     return imgs, labels
 
 
-def main():
-    BATCH_SIZE = 64
+def main(params):
+    # create model
+    model = SpaceshipDetector()
 
-    model = gen_model()
-    model.compile(loss="mse", optimizer="adam")
-    model.summary()
+    # setup
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model.to(device)
 
-    model.fit_generator(
-        iter(lambda: make_batch(BATCH_SIZE), None), steps_per_epoch=500, epochs=30,
-    )
-    model.save("model.hdf5")
-    print("Done")
+    # init train
+    model.train()
+
+    # construct optimizer
+    opt = optim.Adam(model.parameters(), lr=params['lr'])
+
+    # [train] localization behavior
+    for epoch in range(params['epochs']):
+        for step in tqdm(range(params['steps_per_epoch']), desc=f'Epoch {epoch}'):
+
+            # get batch
+            imgs, labels = make_batch(params['batch_size'])
+
+            # move training data to torch device
+            imgs = imgs.to(device)
+            labels = labels.to(device)
+
+            # run forward pass on data
+            pred = model(imgs)
+
+            # compute loss
+
+            # update weights
+            opt.zero_grad() # resetting gradients
+            loss.backward() # backwards pass
+            opt.step()
+
+
 
 
 if __name__ == "__main__":
-    main()
+    # params config
+    params = {'lr': 0.0001,
+              'steps_per_epoch': 500,
+              'batch_size': 64,
+              'epochs': 500}
+    main(params)
