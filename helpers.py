@@ -25,16 +25,16 @@ def decode(encoded, img_size=200):
     # function to decode network output into raw label
 
     # scale position and bbox size back up by size of image
-    pos  = encoded[0:2] * img_size
-    size = encoded[2:4] * img_size
+    pos  = encoded[:,0:2] * img_size
+    size = encoded[:,2:4] * img_size
 
     # recompute the angle from the sin/cos encoding
-    s = 2 * (encoded[4] - 0.5) # sin encoding
-    c = 2 * (encoded[5] - 0.5) # cos encoding
-    yaw = np.arctan2(s, c)
+    s = 2 * (encoded[:,4] - 0.5) # sin encoding
+    c = 2 * (encoded[:,5] - 0.5) # cos encoding
+    yaw = np.expand_dims(np.arctan2(s, c), 1)
 
     # package all the decodings into one object
-    decoded = np.concatenate((pos, yaw, size), axis=1)
+    decoded = np.concatenate((pos, yaw, size), axis=-1)
 
     # returns: un-normalized (x, y, yaw, w, h)
     return decoded
