@@ -24,7 +24,8 @@ def main(params):
     model = SpaceshipDetector()
 
     # cuda setup
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f'Using device: {device}')
     model.to(device)
 
     # tensorboard setup
@@ -62,8 +63,12 @@ def main(params):
                 loss = l2(pred, labels) + l1(pred, labels)
 
                 # decode latent representation into raw labels
-                decoded_pred = decode(pred.detach().numpy())
-                decoded_true = decode(labels.detach().numpy())
+                if device.type == 'cpu':
+                    decoded_pred = decode(pred.detach().numpy())
+                    decoded_true = decode(labels.detach().numpy())
+                else:
+                    decoded_pred = decode(pred.cpu().detach().numpy())
+                    decoded_true = decode(labels.cpu().detach().numpy())
                 
                 # compute generalized IOU (GIOU) loss
                 iou = np.mean([score_iou(decoded_true[i], decoded_pred[i]) for i in range(len(decoded_true))])
