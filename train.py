@@ -77,7 +77,7 @@ def main(params):
 
                 # compute binary cross entropy loss for classification
                 bce = nn.BCELoss()
-                loss += bce(pred[:,-1:], labels[:,-1:]) / 10
+                loss += bce(pred[:,-1:], labels[:,-1:]) / 100
 
                 # decode latent representation into raw labels
                 decoded_pred = decode(pred.cpu().detach().numpy())
@@ -120,7 +120,7 @@ def main(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': '6',
+    params = {'name': '7',
               'path': 'zoo',
               'lr': 0.001,
               'steps_per_epoch': 500,
