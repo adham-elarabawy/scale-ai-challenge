@@ -64,22 +64,20 @@ def main(params):
                 l1 = nn.L1Loss(reduction='none')  # set reduce to 'none' so we can apply (negative) classification mask
 
                 # construct mask vector based on negative samples
-                mask = torch.squeeze(labels[:,-1:])
+                mask = torch.squeeze(labels[:,-1:]) > 0
 
                 # compute raw distance loss (L2 / L1)
                 loss = l2(pred[:,-1], labels[:,-1]) + l1(pred[:,-1], labels[:,-1])
 
                 # apply negative sample mask to the distance loss
-                loss = loss * mask
+                loss = torch.masked_select(loss, mask)
 
                 # reduce loss tensor into scalar via mean
                 loss = torch.mean(loss)
-                print(loss)
 
                 # compute binary cross entropy loss for classification
                 bce = nn.BCELoss()
                 loss += bce(pred[:,-1:], labels[:,-1:]) / 10
-                print(loss)
 
                 # decode latent representation into raw labels
                 decoded_pred = decode(pred.cpu().detach().numpy())
