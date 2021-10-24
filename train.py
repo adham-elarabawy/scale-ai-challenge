@@ -11,9 +11,9 @@ from torch.optim.lr_scheduler import MultiStepLR
 
 
 
-def make_batch(batch_size):
+def make_batch(batch_size, has_spaceship=True):
     # this model can only train on data where a spaceship is guaranteed, this is not true when testing
-    imgs, labels = zip(*[make_data(has_spaceship=True) for _ in range(batch_size)])
+    imgs, labels = zip(*[make_data(has_spaceship=has_spaceship) for _ in range(batch_size)])
     imgs = torch.unsqueeze(torch.from_numpy(np.asarray(np.stack(imgs), dtype=np.float32)), 1)
     labels = torch.from_numpy(np.asarray(encode(np.stack(labels)), dtype=np.float32))
     return imgs, labels

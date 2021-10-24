@@ -11,7 +11,9 @@ class SpaceshipDetector(nn.Module):
         self.localizingHead   = LocalizingHead()
 
     def forward(self, x):
+        # use CNN (Feature Extractor) to extract higher level features from the image
         features = self.featureExtractor(x)
+        # use FC layers (Localizing Head) to compute bbox identifiers
         return self.localizingHead(features)
 
 
@@ -42,7 +44,8 @@ class LocalizingHead(nn.Module):
     def __init__(self):
         super(LocalizingHead, self).__init__()
         # input neurons: out_channel (num channels last conv_block) * downscaled resolution^2 (due to maxpooling)
-        # output neurons: arbitrary
+        # hidden neurons: arbitrary (more -> more complex model)
+        # output neurons: number of variables in output label
         self.head = nn.Sequential(nn.Linear(16 * (200 // (2**4))**2, 240), nn.ReLU(), nn.Linear(240, 6), nn.Sigmoid())
 
     def forward(self, x):
