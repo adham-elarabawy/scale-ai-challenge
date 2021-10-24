@@ -107,7 +107,7 @@ def main(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': '2',
+    params = {'name': '3',
               'path': 'zoo',
               'lr': 0.001,
               'steps_per_epoch': 500,
