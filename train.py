@@ -49,7 +49,7 @@ def main(params):
         with tqdm(range(params['steps_per_epoch']), desc=f'Epoch {epoch}', unit="batch") as steps:
             for step in steps:
                 # get batch
-                imgs, labels = make_batch(params['batch_size'])
+                imgs, labels = make_batch(params['batch_size'], has_spaceship=None)
 
                 # move training data to torch device
                 imgs = imgs.to(device)
@@ -72,7 +72,7 @@ def main(params):
                 decoded_true = decode(labels.cpu().detach().numpy())
                 
                 # compute generalized IOU (GIOU) loss
-                iou = np.mean([score_iou(decoded_true[i][:-1], decoded_pred[i][:-1]) for i in range(len(decoded_true))])
+                iou = np.mean([score_iou(decoded_true[i][:-1], decoded_pred[i][:-1]) for i in range(len(decoded_true)) if not (None == score_iou(decoded_true[i][:-1], decoded_pred[i][:-1]))])
 
                 # average IOU over samples in batch
                 iou = np.mean(iou)
