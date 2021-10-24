@@ -74,10 +74,12 @@ def main(params):
 
                 # reduce loss tensor into scalar via mean
                 loss = torch.mean(loss)
+                print(loss)
 
                 # compute binary cross entropy loss for classification
                 bce = nn.BCELoss()
-                loss += bce(pred[:,-1:], labels[:,-1:])
+                loss += bce(pred[:,-1:], labels[:,-1:]) / 10
+                print(loss)
 
                 # decode latent representation into raw labels
                 decoded_pred = decode(pred.cpu().detach().numpy())
