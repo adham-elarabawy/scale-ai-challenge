@@ -58,20 +58,32 @@ def main(params):
                 # run forward pass on data
                 pred = model(imgs)
 
+                ### CUSTOM LOSS COMPUTATION ###
                 # compute norm loss for bbox encodings
-                l2 = nn.MSELoss()
-                l1 = nn.L1Loss()
-                loss = l2(pred[:-1], labels[:-1]) + l1(pred[:-1], labels[:-1])
+                l2 = nn.MSELoss(reduction='none') # set reduce to 'none' so we can apply (negative) classification mask
+                l1 = nn.L1Loss(reduction='none')  # set reduce to 'none' so we can apply (negative) classification mask
+
+                # construct mask vector based on negative samples
+                mask = torch.squeeze(labels[:,-1:])
+
+                # compute raw distance loss (L2 / L1)
+                loss = l2(pred[:,-1], labels[:,-1]) + l1(pred[:,-1], labels[:,-1])
+
+                # apply negative sample mask to the distance loss
+                loss = loss * mask
+
+                # reduce loss tensor into scalar via mean
+                loss = torch.mean(loss)
 
                 # compute binary cross entropy loss for classification
                 bce = nn.BCELoss()
-                loss += bce(pred[-1:], labels[-1:])
+                loss += bce(pred[:,-1:], labels[:,-1:])
 
                 # decode latent representation into raw labels
                 decoded_pred = decode(pred.cpu().detach().numpy())
                 decoded_true = decode(labels.cpu().detach().numpy())
                 
-                # compute generalized IOU (GIOU) loss
+                # compute IOU metric
                 iou = np.mean([score_iou(decoded_true[i][:-1], decoded_pred[i][:-1]) for i in range(len(decoded_true)) if not (None == score_iou(decoded_true[i][:-1], decoded_pred[i][:-1]))])
 
                 # average IOU over samples in batch
@@ -108,7 +120,7 @@ def main(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': '4',
+    params = {'name': '5',
               'path': 'zoo',
               'lr': 0.001,
               'steps_per_epoch': 500,
