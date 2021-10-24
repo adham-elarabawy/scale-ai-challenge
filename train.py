@@ -35,7 +35,7 @@ def main(params):
     model.train()
 
     # construct optimizer
-    opt = optim.Adam(model.parameters(), lr=params['lr'], eps=1e-07)
+    opt = optim.Adam(model.parameters(), lr=params['lr'])
 
     # construct learning rate scheduler
     scheduler = MultiStepLR(opt, milestones=[120, 180], gamma=0.1)
