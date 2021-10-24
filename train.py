@@ -98,7 +98,7 @@ def main(params):
                 totalIOU  += iou
 
                 # update progress bar
-                steps.set_postfix(loss=loss.item(), iou=iou)
+                steps.set_postfix(loss=totalLoss / (step+1), iou=totalIOU / (step+1))
 
             # update learning rate scheduler
             scheduler.step()
