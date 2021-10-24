@@ -38,7 +38,7 @@ def main(params):
     opt = optim.Adam(model.parameters(), lr=params['lr'], eps=1e-07)
 
     # construct learning rate scheduler
-    scheduler = MultiStepLR(opt, milestones=[20,30], gamma=0.1)
+    scheduler = MultiStepLR(opt, milestones=[120, 180], gamma=0.1)
 
     # [train] localization behavior
     for epoch in range(params['epochs']):
@@ -103,7 +103,6 @@ def main(params):
                 'optimizer_state_dict': opt.state_dict(),
                 'loss': loss
             }, model_path)
-
 
 
 if __name__ == "__main__":
