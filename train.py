@@ -15,7 +15,8 @@ def make_batch(batch_size, has_spaceship=True):
     # this model can only train on data where a spaceship is guaranteed, this is not true when testing
     imgs, labels = zip(*[make_data(has_spaceship=has_spaceship) for _ in range(batch_size)])
     imgs = torch.unsqueeze(torch.from_numpy(np.asarray(np.stack(imgs), dtype=np.float32)), 1)
-    labels = torch.from_numpy(np.asarray(encode(np.stack(labels)), dtype=np.float32))
+    #labels = torch.from_numpy(np.asarray(encode(np.stack(labels)), dtype=np.float32))
+    labels = torch.from_numpy(np.asarray(np.apply_along_axis(encode, 1, np.stack(labels)), dtype=np.float32))
     return imgs, labels
 
 
@@ -57,21 +58,21 @@ def main(params):
                 # run forward pass on data
                 pred = model(imgs)
 
-                # compute loss
+                # compute norm loss for bbox encodings
                 l2 = nn.MSELoss()
                 l1 = nn.L1Loss()
-                loss = l2(pred, labels) + l1(pred, labels)
+                loss = l2(pred[:-1], labels[:-1]) + l1(pred[:-1], labels[:-1])
+
+                # compute binary cross entropy loss for classification
+                bce = nn.BCELoss()
+                loss += bce(pred[-1:], labels[-1:])
 
                 # decode latent representation into raw labels
-                if device.type == 'cpu':
-                    decoded_pred = decode(pred.detach().numpy())
-                    decoded_true = decode(labels.detach().numpy())
-                else:
-                    decoded_pred = decode(pred.cpu().detach().numpy())
-                    decoded_true = decode(labels.cpu().detach().numpy())
+                decoded_pred = decode(pred.cpu().detach().numpy())
+                decoded_true = decode(labels.cpu().detach().numpy())
                 
                 # compute generalized IOU (GIOU) loss
-                iou = np.mean([score_iou(decoded_true[i], decoded_pred[i]) for i in range(len(decoded_true))])
+                iou = np.mean([score_iou(decoded_true[i][:-1], decoded_pred[i][:-1]) for i in range(len(decoded_true))])
 
                 # average IOU over samples in batch
                 iou = np.mean(iou)
@@ -107,7 +108,7 @@ def main(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': '3',
+    params = {'name': '4',
               'path': 'zoo',
               'lr': 0.001,
               'steps_per_epoch': 500,

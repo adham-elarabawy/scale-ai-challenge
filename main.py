@@ -45,7 +45,7 @@ def eval(params):
         # create test data
         imgs, labels = make_batch(1, has_spaceship=True)
         img = imgs[0]
-        label = decode(labels.numpy())[0]
+        label = decode(labels.numpy())[0][:-1]
 
         # convert np -> tensor and move to gpu/cpu
         img.to(device)
@@ -55,7 +55,7 @@ def eval(params):
 
         # decode network output into native label representation
         pred = decode(pred.detach().cpu().numpy())
-        pred = np.squeeze(pred)
+        pred = np.squeeze(pred)[:-1]
 
         # compute iou score
         ious.append(score_iou(label, pred))
@@ -68,7 +68,7 @@ def eval(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': '2',
+    params = {'name': '4',
               'dir': 'zoo',
               'checkpoint_epoch': '170',
               'has_spaceship': True,
