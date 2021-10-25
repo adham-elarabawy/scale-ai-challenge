@@ -9,6 +9,7 @@ import os.path
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import MultiStepLR
 from math import ceil
+from torchsummary import summary
 
 def make_batch(batch_size, has_spaceship=True):
     # this model can only train on data where a spaceship is guaranteed, this is not true when testing
@@ -22,6 +23,9 @@ def make_batch(batch_size, has_spaceship=True):
 def main(params):
     # create model
     model = SpaceshipDetector()
+
+    # print model summary
+    summary(model, (1, 200, 200))
 
     # cuda setup
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -46,7 +46,7 @@ class LocalizingHead(nn.Module):
         # input neurons: out_channel (num channels last conv_block) * downscaled resolution^2 (due to maxpooling)
         # hidden neurons: arbitrary (more -> more complex model)
         # output neurons: number of variables in output label
-        self.head = nn.Sequential(nn.Linear(16 * (200 // (2**4))**2, 240), nn.ReLU(), nn.Linear(240, 7), nn.Sigmoid())
+        self.head = nn.Sequential(nn.Linear(16 * (200 // (2**4))**2, 350), nn.ReLU(), nn.Linear(350, 7), nn.Sigmoid())
 
     def forward(self, x):
         batches, channels, height, width = x.shape
