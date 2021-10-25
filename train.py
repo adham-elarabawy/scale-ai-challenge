@@ -53,7 +53,7 @@ def main(params):
         with tqdm(range(params['steps_per_epoch']), desc=f'Epoch {epoch}', unit="batch") as steps:
             for step in steps:
                 # get batch
-                imgs, labels = make_batch(params['batch_size'], has_spaceship=None)
+                imgs, labels = make_batch(params['batch_size'], has_spaceship=(None if epoch >= params['epoch_threshold'] else True))
 
                 # move training data to torch device
                 imgs = imgs.to(device)
