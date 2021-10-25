@@ -81,7 +81,7 @@ def main(params):
 
                 # reduce loss tensor into scalar via mean
                 if len(loss) > 0:
-                    loss = torch.mean(loss)
+                    loss = torch.mean(loss) / 6
                 else:
                     loss = 0
 
