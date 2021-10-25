@@ -150,5 +150,5 @@ if __name__ == "__main__":
               'steps_per_epoch': 500,
               'batch_size': 64,
               'epochs': 500,
-              'epoch_threshold': 1}
+              'epoch_threshold': 150}
     main(params)
