@@ -42,7 +42,7 @@ def main(params):
     opt = optim.Adam(model.parameters(), lr=params['lr'])
 
     # construct learning rate scheduler
-    scheduler = MultiStepLR(opt, milestones=[20, 30, 40], gamma=0.1)
+    scheduler = MultiStepLR(opt, milestones=[120, 180], gamma=0.1)
 
     # [train] localization behavior
     for epoch in range(params['epochs']):
@@ -85,9 +85,14 @@ def main(params):
                 else:
                     loss = 0
 
-                # compute L2 loss for classification
-                cl = nn.MSELoss()
-                loss += cl(pred[:,-1:], labels[:,-1:]) / 10
+                if epoch >= params['epoch_threshold']:
+                    # freeze feature extractor (cnn) weights so that we don't hurt localization
+                    for p in model.featureExtractor.parameters():
+                        p.requires_grad = False
+
+                    # compute L2 loss for classification
+                    cl = nn.MSELoss()
+                    loss += cl(pred[:,-1:], labels[:,-1:]) / 10
 
                 # decode latent representation into raw labels
                 decoded_pred = decode(pred.cpu().detach().numpy())
@@ -103,7 +108,7 @@ def main(params):
                 binClassAcc = lambda x: bool(ceil(x)) if not (x is None) else None
                 obj = np.array([(binClassAcc(score_iou(decoded_true[i][:-1], decoded_pred[i][:-1])) in {None, True}) for i in range(len(decoded_true))], dtype=int)
 
-                # avg objectness ove samples in batch (accuracy)
+                # avg objectness over samples in batch (accuracy)
                 obj = np.mean(obj)
 
                 # update weights
@@ -139,10 +144,11 @@ def main(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': '13',
+    params = {'name': 'hydra_mk0',
               'path': 'zoo',
               'lr': 0.001,
               'steps_per_epoch': 500,
               'batch_size': 64,
-              'epochs': 500}
+              'epochs': 500,
+              'epoch_threshold': 1}
     main(params)
