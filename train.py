@@ -8,8 +8,7 @@ from model import SpaceshipDetector
 import os.path
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import MultiStepLR
-
-
+from math import ceil
 
 def make_batch(batch_size, has_spaceship=True):
     # this model can only train on data where a spaceship is guaranteed, this is not true when testing
@@ -45,6 +44,7 @@ def main(params):
     for epoch in range(params['epochs']):
         totalLoss = 0
         totalIOU = 0
+        totalOBJ = 0
 
         with tqdm(range(params['steps_per_epoch']), desc=f'Epoch {epoch}', unit="batch") as steps:
             for step in steps:
@@ -73,11 +73,14 @@ def main(params):
                 loss = torch.masked_select(loss, mask)
 
                 # reduce loss tensor into scalar via mean
-                loss = torch.mean(loss)
+                if len(loss) > 0:
+                    loss = torch.mean(loss)
+                else:
+                    loss = 0
 
-                # compute binary cross entropy loss for classification
-                bce = nn.BCELoss()
-                loss += bce(pred[:,-1:], labels[:,-1:]) / 10
+                # compute L2 loss for classification
+                cl = nn.MSELoss()
+                loss += cl(pred[:,-1:], labels[:,-1:]) / 10
 
                 # decode latent representation into raw labels
                 decoded_pred = decode(pred.cpu().detach().numpy())
@@ -89,6 +92,13 @@ def main(params):
                 # average IOU over samples in batch
                 iou = np.mean(iou)
 
+                # compute objectness correctness metric
+                binClassAcc = lambda x: bool(ceil(x)) if not (x is None) else None
+                obj = np.array([(binClassAcc(score_iou(decoded_true[i][:-1], decoded_pred[i][:-1])) in {None, True}) for i in range(len(decoded_true))], dtype=int)
+
+                # avg objectness ove samples in batch (accuracy)
+                obj = np.mean(obj)
+
                 # update weights
                 opt.zero_grad() # resetting gradients
                 loss.backward() # backwards pass
@@ -96,9 +106,10 @@ def main(params):
 
                 totalLoss += loss.item()
                 totalIOU  += iou
+                totalOBJ  += obj
 
                 # update progress bar
-                steps.set_postfix(loss=totalLoss / (step+1), iou=totalIOU / (step+1))
+                steps.set_postfix(loss=totalLoss / (step+1), iou=totalIOU / (step+1), obj=totalOBJ / (step+1))
 
             # update learning rate scheduler
             scheduler.step()
@@ -106,6 +117,7 @@ def main(params):
             # update tensorboard
             tb.add_scalar('loss/train', totalLoss / params['steps_per_epoch'], epoch)
             tb.add_scalar('iou/train', totalIOU / params['steps_per_epoch'], epoch)
+            tb.add_scalar('obj/train', totalOBJ / params['steps_per_epoch'], epoch)
 
             # save the model at every epoch
             model_path = os.path.join(params['path'], params['name'], str(epoch) + '.pth')
@@ -120,7 +132,7 @@ def main(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': '8',
+    params = {'name': '9',
               'path': 'zoo',
               'lr': 0.001,
               'steps_per_epoch': 500,
