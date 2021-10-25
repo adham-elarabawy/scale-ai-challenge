@@ -71,7 +71,7 @@ def main(params):
                 mask = torch.squeeze(labels[:,-1:]) > 0
 
                 # compute raw distance loss (L2 / L1)
-                loss = l2(pred[:,-1], labels[:,-1]) + l1(pred[:,-1], labels[:,-1])
+                loss = l2(pred[:,:-1], labels[:,:-1]) + l1(pred[:,:-1], labels[:,:-1])
 
                 # apply negative sample mask to the distance loss
                 loss = torch.masked_select(loss, mask)
