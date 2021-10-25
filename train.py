@@ -24,13 +24,13 @@ def main(params):
     # create model
     model = SpaceshipDetector()
 
-    # print model summary
-    summary(model, (1, 200, 200))
-
     # cuda setup
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
     model.to(device)
+
+    # print model summary
+    summary(model, (1, 200, 200))
 
     # tensorboard setup
     tb = SummaryWriter(f'runs/{params["name"]}')
@@ -42,7 +42,7 @@ def main(params):
     opt = optim.Adam(model.parameters(), lr=params['lr'])
 
     # construct learning rate scheduler
-    scheduler = MultiStepLR(opt, milestones=[120, 180], gamma=0.1)
+    scheduler = MultiStepLR(opt, milestones=[20, 30, 40], gamma=0.1)
 
     # [train] localization behavior
     for epoch in range(params['epochs']):
@@ -72,6 +72,9 @@ def main(params):
 
                 # compute raw distance loss (L2 / L1)
                 loss = l2(pred[:,:-1], labels[:,:-1]) + l1(pred[:,:-1], labels[:,:-1])
+
+                # reduce loss via summing label loss (unraveled MSE)
+                loss = torch.sum(loss, 1)
 
                 # apply negative sample mask to the distance loss
                 loss = torch.masked_select(loss, mask)
@@ -136,7 +139,7 @@ def main(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': '9',
+    params = {'name': '13',
               'path': 'zoo',
               'lr': 0.001,
               'steps_per_epoch': 500,
