@@ -2,5 +2,4 @@ __pycache__
 .idea
 .DS_Store
 runs
-cuda_op
 zoo
