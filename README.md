@@ -3,18 +3,18 @@
 
 ### Deliverables:
   * _Final Score_: **0.82 AP @ IOU > 0.7**
-  * _Model Architecture_: [file summary](https://github.com/adham-elarabawy/scale-ai-challenge/blob/main/architecture.txt)
-  * _Training Script_: [train.py](https://github.com/adham-elarabawy/scale-ai-challenge/blob/main/train.py)
-  * _Evaluation Script_: [main.py](https://github.com/adham-elarabawy/scale-ai-challenge/blob/main/main.py)
-  * _Final Model Weights_: 
+  * _Model Architecture_: [file summary](architecture.txt)
+  * _Training Script_: [train.py](train.py)
+  * _Evaluation Script_: [main.py](main.py)
+  * _Final Model Weights_: [zoo/hydra/201.pth](zoo/hydra/201.pth)
   * Installation Instructions: Below
 
-####Installation Instructions:
+#### Installation Instructions:
 Run the following command with a **python3** installation:
 
     pip3 install -r requirements.txt
 
-####Some Notes:
+#### Some Notes:
 This was a super fun project! As you're reading through my code, you'll find that I have this metric called _objectness_. This is simply my encoding of the model's confidence that an object exists there. You can think of it as a confidence score about the existence of a spaceship in the input image.
 
 A quick summary of my implementation is below:
