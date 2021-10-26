@@ -19,7 +19,7 @@ This was a super fun project! As you're reading through my code, you'll find tha
 
 A quick summary of my implementation is below:
 
-I implemented a generic (fully convolutional) CNN feature extractor as the body of the model. I then added a fully-connected head to perform bounding box regression (x, y, w, h, yaw) as well as classify whether or not a given input had a spaceship. It worked great with **0.82 AP @ IOU>0.7**. The training procedure was a bit nuanced. For the first 150 epochs, I train the model _just_ for the localization task to ensure good localization performance (using both L1 and L2 loss), and then after 150 epochs, I also include the classification loss (encoded as L2 loss to avoid extremely large loss values from binary cross entropy that would overpower the localization loss). This worked great!
+I implemented a generic CNN feature extractor as the body of the model. I then added a fully-connected head to perform bounding box regression (x, y, w, h, yaw) as well as classify whether or not a given input had a spaceship. It worked great with **0.82 AP @ IOU>0.7**. The training procedure was a bit nuanced. For the first 150 epochs, I train the model _just_ for the localization task to ensure good localization performance (using both L1 and L2 loss), and then after 150 epochs, I also include the classification loss (encoded as L2 loss to avoid extremely large loss values from binary cross entropy that would overpower the localization loss). This worked great!
 
 #### Plots!
 I absolutely love using _Tensorboard_ to keep track of my model training and evaluation metrics. I thought I'd throw up a couple of the generated plots on the README!
