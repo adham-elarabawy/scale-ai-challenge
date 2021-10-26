@@ -7,21 +7,32 @@ import torch
 def encode(label, img_size=200):
     # function to encode raw label to network input/output
 
-    # normalize all positional variables by dividing by max value
-    encoded_pos = label[:,0:2] / img_size  # x/y position
-    encoded_size  = label[:,3:] / img_size   # w/h bbox
+    # add objectness score
+    if np.any(np.isnan(label)):
+        # if there IS NOT a spaceship
+        objectness = 0
+        # first 6 variables are *arbitrary*
+        encoded = (0, 0, 0, 0, 0, 0, objectness)
+    else:
+        # if there IS a spaceship
+        objectness = 1
+        objectness = np.array([objectness])
 
-    # encoding angles as sin/cos for proper behavior at wrap-around angles (bounded to [0,1])
-    s = np.expand_dims(np.sin(label[:,2]) / 2 + 0.5, axis=1)
-    c = np.expand_dims(np.cos(label[:,2]) / 2 + 0.5, axis=1)
+        # normalize all positional variables by dividing by max value
+        encoded_pos = label[0:2] / img_size  # x/y position
+        encoded_size  = label[3:] / img_size   # w/h bbox
 
-    # package all the encodings into one object
-    encoded = np.concatenate((encoded_pos, encoded_size, s, c), axis=1)
+        # encoding angles as sin/cos for proper behavior at wrap-around angles (bounded to [0,1])
+        s = np.sin(label[2:3]) / 2 + 0.5
+        c = np.cos(label[2:3]) / 2 + 0.5
 
-    # returns: normalized (x, y, w, h, sin(yaw), cos(yaw))
+        # package all the encodings into one object
+        encoded = np.concatenate((encoded_pos, encoded_size, s, c, objectness), axis=-1)
+
+    # returns: normalized (x, y, w, h, sin(yaw), cos(yaw), objectness)
     return encoded
 
-def decode(encoded, img_size=200):
+def decode(encoded, img_size=200, thresh=0.5):
     # function to decode network output into raw label
 
     # scale position and bbox size back up by size of image
@@ -33,13 +44,24 @@ def decode(encoded, img_size=200):
     c = 2 * (encoded[:,5] - 0.5) # cos encoding
     yaw = np.expand_dims(np.arctan2(s, c), 1)
 
-    # package all the decodings into one object
-    decoded = np.concatenate((pos, yaw, size), axis=-1)
+    # decode objectness
+    objectness = np.expand_dims(encoded[:,6], 1)
 
-    # returns: un-normalized (x, y, yaw, w, h)
+    # package all the decodings into one vector
+    decoded = np.concatenate((pos, yaw, size, objectness), axis=-1)
+
+    # change the < 50% objectness to NAN
+    for i, label in enumerate(decoded):
+        x, y, yaw, w, h, o = label
+        if o < thresh:
+            decoded[i] = np.array([np.nan, np.nan, np.nan, np.nan, np.nan, o])
+
+    # returns: un-normalized (x, y, yaw, w, h, objectness)
     return decoded
 
 def decode_torch(encoded, img_size=200):
+    # TENSOR-FRIENDLY VERSION OF DECODE FUNCTION (for complicated loss function computation reasons).
+    # Note: Currently unused/deprecated since I phased out the GIOU/DIOU/IOU loss function since it didn't converge well.
     # function to decode network output into raw label
 
     # scale position and bbox size back up by size of image
@@ -51,8 +73,11 @@ def decode_torch(encoded, img_size=200):
     c = 2 * (encoded[:,5] - 0.5) # cos encoding
     yaw = torch.unsqueeze(torch.atan2(s, c), 1)
 
-    # package all the decodings into one object
-    decoded = torch.cat((pos, yaw, size), dim=1)
+    # decode objectness
+    objectness = encoded[:,6]
+
+    # package all the decodings into one tensor
+    decoded = torch.cat((pos, yaw, size, objectness), dim=1)
 
     # returns: un-normalized (x, y, yaw, w, h)
     return decoded
