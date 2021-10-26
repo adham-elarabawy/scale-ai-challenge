@@ -144,7 +144,7 @@ def main(params):
 
 if __name__ == "__main__":
     # params config
-    params = {'name': 'hydra_mk2',
+    params = {'name': 'hydra',
               'path': 'zoo',
               'lr': 0.001,
               'steps_per_epoch': 250,

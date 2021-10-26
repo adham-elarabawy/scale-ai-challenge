@@ -44,7 +44,7 @@ def eval(params):
     ious = []
     for _ in tqdm(range(params['numIters'])):
         # create test data
-        imgs, labels = make_batch(1, has_spaceship=True)
+        imgs, labels = make_batch(1, has_spaceship=params['has_spaceship'])
         img = imgs[0]
         label = decode(labels.numpy())[0][:-1]
 
@@ -63,7 +63,7 @@ def eval(params):
 
     ious = np.asarray(ious, dtype="float")
     ious = ious[~np.isnan(ious)]  # remove true negatives
-    print((ious > 0.7).mean())
+    print('[AP @ IOU>0.7]: ' + str((ious > 0.7).mean().round(3)))
 
 
 if __name__ == "__main__":
@@ -71,6 +71,6 @@ if __name__ == "__main__":
     params = {'name': 'hydra',
               'dir': 'zoo',
               'checkpoint_epoch': 'latest',
-              'has_spaceship': True,
+              'has_spaceship': None,
               'numIters': 1000}
     eval(params)

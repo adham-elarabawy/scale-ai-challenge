@@ -2,3 +2,4 @@ __pycache__
 .idea
 .DS_Store
 runs
+zoo/hydra/full/*
