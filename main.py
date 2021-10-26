@@ -31,6 +31,7 @@ def eval(params):
             print(f'FATAL: Checkpoint not found at {model_file}.')
             exit()
 
+    # load model
     model_path = os.path.join(model_dir_path, model_file)
     model = SpaceshipDetector()
     model.load_state_dict(torch.load(model_path, map_location=device)['model_state_dict'])
@@ -63,14 +64,13 @@ def eval(params):
     ious = np.asarray(ious, dtype="float")
     ious = ious[~np.isnan(ious)]  # remove true negatives
     print((ious > 0.7).mean())
-    # 0.004
 
 
 if __name__ == "__main__":
     # params config
-    params = {'name': 'hydra_mk2',
+    params = {'name': 'hydra',
               'dir': 'zoo',
-              'checkpoint_epoch': '201',
+              'checkpoint_epoch': 'latest',
               'has_spaceship': True,
               'numIters': 1000}
     eval(params)

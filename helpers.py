@@ -33,7 +33,7 @@ def encode(label, img_size=200):
     return encoded
 
 def decode(encoded, img_size=200, thresh=0.5):
-    # function to decode network output into raw label
+    # function to decode network output into raw label for IOU computation (with objectness score)
 
     # scale position and bbox size back up by size of image
     pos  = encoded[:,0:2] * img_size

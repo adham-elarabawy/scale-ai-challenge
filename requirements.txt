@@ -4,6 +4,6 @@ shapely==1.7.1
 numpy
 tqdm==4.62.2
 torch==1.10.0
-matplotlib
 argparse
 tensorboard
+torchsummary

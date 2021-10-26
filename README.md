@@ -1,6 +1,45 @@
 
 # Computer Vision Takehome - Decloaking Spaceship V2
 
+### Deliverables:
+  * _Final Score_: **0.82 AP @ IOU > 0.7**
+  * _Model Architecture_: [file summary](https://github.com/adham-elarabawy/scale-ai-challenge/blob/main/architecture.txt)
+  * _Training Script_: [train.py](https://github.com/adham-elarabawy/scale-ai-challenge/blob/main/train.py)
+  * _Evaluation Script_: [main.py](https://github.com/adham-elarabawy/scale-ai-challenge/blob/main/main.py)
+  * _Final Model Weights_: 
+  * Installation Instructions: Below
+
+####Installation Instructions:
+Run the following command with a **python3** installation:
+
+    pip3 install -r requirements.txt
+
+####Some Notes:
+This was a super fun project! As you're reading through my code, you'll find that I have this metric called _objectness_. This is simply my encoding of the model's confidence that an object exists there. You can think of it as a confidence score about the existence of a spaceship in the input image.
+
+A quick summary of my implementation is below:
+
+I implemented a generic (fully convolutional) CNN feature extractor as the body of the model. I then added a fully-connected head to perform bounding box regression (x, y, w, h, yaw) as well as classify whether or not a given input had a spaceship. It worked great with **0.82 AP @ IOU>0.7**. However, when I trained a model specifically for JUST localization, I got slightly better performance (since the model didn't have to perform a classification task). If I were to take this project a bit further, I would likely implement a multi-headed model with different sets of fully-connected layers for classification vs regression, but I'd keep the feature extractor frozen (after training for the localization task). Given that my initial approach had pretty good performance, I didn't feel the need to implement this modification, but I thought I'd note it regardless :)
+
+#### Plots!
+I absolutely love using _Tensorboard_ to keep track of my model training and evaluation metrics. I thought I'd throw up a couple of the generated plots on the README!
+
+_**Loss vs Epoch**_
+
+![Loss vs Epoch](assets/loss.png)
+
+_**IOU vs Epoch**_
+
+![IOU vs Epoch](assets/iou.png)
+
+_**Objectness vs Epoch**_
+
+![Objectness vs Epoch](assets/objectness.png)
+
+
+
+-----------------------------------------------------------
+
 **Problem:**
 The goal is to detect spaceships which have been fitted with a cloaking device that makes them less visible. You are expected to use a deep learning model to complete this task. The model will take a single channel image as input and detects the spaceship (if it exists). Not all image will contain a spaceship, but they will contain no more than 1. For any spaceship, the model should predict their bounding box and heading. This can be described using five parameters:
 
