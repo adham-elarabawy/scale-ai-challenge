@@ -147,7 +147,7 @@ if __name__ == "__main__":
     params = {'name': 'hydra_mk2',
               'path': 'zoo',
               'lr': 0.001,
-              'steps_per_epoch': 500,
+              'steps_per_epoch': 250,
               'batch_size': 64,
               'epochs': 500,
               'epoch_threshold': 150}
