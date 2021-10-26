@@ -7,7 +7,7 @@
   * _Training Script_: [train.py](train.py)
   * _Evaluation Script_: [main.py](main.py)
   * _Final Model Weights_: [zoo/hydra/201.pth](zoo/hydra/201.pth)
-  * Installation Instructions: Below
+  * Installation Instructions: [section below](https://github.com/adham-elarabawy/scale-ai-challenge#installation-instructions)
 
 #### Installation Instructions:
 Run the following command with a **python3** installation:
@@ -19,7 +19,7 @@ This was a super fun project! As you're reading through my code, you'll find tha
 
 A quick summary of my implementation is below:
 
-I implemented a generic (fully convolutional) CNN feature extractor as the body of the model. I then added a fully-connected head to perform bounding box regression (x, y, w, h, yaw) as well as classify whether or not a given input had a spaceship. It worked great with **0.82 AP @ IOU>0.7**. However, when I trained a model specifically for JUST localization, I got slightly better performance (since the model didn't have to perform a classification task). If I were to take this project a bit further, I would likely implement a multi-headed model with different sets of fully-connected layers for classification vs regression, but I'd keep the feature extractor frozen (after training for the localization task). Given that my initial approach had pretty good performance, I didn't feel the need to implement this modification, but I thought I'd note it regardless :)
+I implemented a generic (fully convolutional) CNN feature extractor as the body of the model. I then added a fully-connected head to perform bounding box regression (x, y, w, h, yaw) as well as classify whether or not a given input had a spaceship. It worked great with **0.82 AP @ IOU>0.7**. The training procedure was a bit nuanced. For the first 150 epochs, I train the model _just_ for the localization task to ensure good localization performance (using both L1 and L2 loss), and then after 150 epochs, I also include the classification loss (encoded as L2 loss to avoid extremely large loss values from binary cross entropy that would overpower the localization loss). This worked great!
 
 #### Plots!
 I absolutely love using _Tensorboard_ to keep track of my model training and evaluation metrics. I thought I'd throw up a couple of the generated plots on the README!
